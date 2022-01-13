@@ -244,13 +244,21 @@ const data = [
 
 		tdPhone.append(phoneLink);
 
-
+		// 1 вариант кнопка
 		const trbut = document.createElement('button');
+		trbut.style.padding = "0.75rem";
 		trbut.textContent = 'редактировать';
 		trbut.classList.add('btn-success');
 
-		tr.append(tdDel, tdName, tdSurname, tdPhone, trbut);
+		// 2 вариант ячейка
+		// const trbut = document.createElement('td');
+		// trbut.style.width = "10%";
+		// trbut.textContent = 'редактировать';
+		// trbut.classList.add('btn-success');	
+		
 
+		tr.append(tdDel, tdName, tdSurname, tdPhone, trbut);
+		
 		return tr;
 	};
 
