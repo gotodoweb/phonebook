@@ -3,7 +3,7 @@
 const data = [
 	{
 		name: 'Иван',
-		surname: 'Петров',
+		surname: 'Федоров',
 		phone: '+79514545454',
 	},
 	{
@@ -12,12 +12,12 @@ const data = [
 		phone: '+79999999999',
 	},
 	{
-		name: 'Семён',
+		name: 'Федор',
 		surname: 'Иванов',
 		phone: '+79800252525',
 	},
 	{
-		name: 'Мария',
+		name: 'Ария',
 		surname: 'Попова',
 		phone: '+79876543210',
 	},
@@ -213,6 +213,7 @@ const data = [
 			list: table.tbody,
 			logo,
 			btnAdd: buttonGroup.btns[0],
+			btnDel: buttonGroup.btns[1],
 			formOverlay: form.overlay,
 			form: form.form,
 		};
@@ -222,16 +223,21 @@ const data = [
 
 
 		const tr = document.createElement('tr');
+		tr.classList.add('contact');
+
 		const tdDel = document.createElement('td');
 		tdDel.classList.add('delete');
+
 		const buttonDel = document.createElement('button');
 		buttonDel.classList.add('del-icon');
 		tdDel.append(buttonDel);
 
 		const tdName = document.createElement('td');
+		tdName.classList.add('name');
 		tdName.textContent = firstName;
 
 		const tdSurname = document.createElement('td');
+		tdSurname.classList.add('surname');
 		tdSurname.textContent = surname;
 
 		const tdPhone = document.createElement('td');
@@ -292,7 +298,7 @@ const data = [
 		const phoneBook = renderPhoneBook(app, title);
 	
 	
-		const { list, logo, btnAdd, formOverlay, form } = phoneBook;
+		const { list, logo, btnAdd, formOverlay, form, btnDel} = phoneBook;
 
 		// функционал 
 		const allRow = renderContacts(list, data);
@@ -308,21 +314,69 @@ const data = [
 
 		btnAdd.addEventListener('click', objEvent);
 
-		const delbt = createForm();
+		btnDel.addEventListener('click', () => {
+			// получим все кнопки с классом delete
+			document.querySelectorAll('.delete').forEach(del => {
+				del.classList.toggle('is-visible');
+			})
+		});
 
-
-		delbt.delb.addEventListener('click', () => {
-			console.log('deletting');
-			formOverlay.classList.remove('is-visible');
+		list.addEventListener('click', e => {
+			if (e.target.closest('.del-icon')) {
+				// находим родителя тоже через closest - будем подниматься до элемента contact и его удалять
+				e.target.closest('.contact').remove();
+			}
 
 		});
 
-		form.addEventListener('click', event => {
-			event.stopPropagation();
+		formOverlay.addEventListener('click', e => {
+			const target = e.target;
+			if (target === formOverlay || target.classList.contains('close')) {
+				formOverlay.classList.remove('is-visible');
+			}
 		});
-		
-		formOverlay.addEventListener('click', () => {
-			formOverlay.classList.remove('is-visible');
+
+		// При клике на поле имя или фамилия производить сортировку по алфавиту в таблице
+		const sortarrn = (data) => {
+			data.sort((prev, next) => {
+				if (prev.name < next.name) return -1;
+				if (prev.name < next.name) return 1;
+			});
+			console.log(data);
+			return data;
+		}
+		const sortarrs = (data) => {
+			data.sort((prev, next) => {
+				if (prev.surname < next.surname) return -1;
+				if (prev.surname < next.surname) return 1;
+			});
+			console.log(data);
+			return data;
+		}
+
+		list.addEventListener('click', e => {
+			const target = e.target;
+			if (target.closest('.name')) {
+				// очистка листа
+				document.querySelectorAll('.name').forEach(del => {
+					del.closest('.contact').remove();
+				})
+				const allRow = renderContacts(list, sortarrn(data));
+			}
+		});
+
+
+		list.addEventListener('click', e => {
+			const target = e.target;
+			if (target.closest('.surname')) {
+
+				document.querySelectorAll('.surname').forEach(del => {
+					del.closest('.contact').remove();
+				})
+
+				const allRow = renderContacts(list, sortarrs(data));
+
+			}
 		});
 
 	};
