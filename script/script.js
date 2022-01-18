@@ -26,6 +26,11 @@ const data = [
 
 
 {
+	// ф-я данных нового контакта
+	const addContactData = contact => {
+		data.push(contact);
+		// console.log('data', data);
+	};
 
 	const createContainer = () => {
 		const container = document.createElement('div');
@@ -38,18 +43,18 @@ const data = [
 		header.classList.add('header');
 
 		const headerContainer = createContainer();
-	
+
 		header.append(headerContainer);
-	
+
 		header.headerContainer = headerContainer;
 		return header;
-		
+
 	};
 
 	const createLogo = title => {
 
 		const h1 = document.createElement('h1');
-		
+
 		h1.classList.add('logo');
 		h1.textContent = `Телефонный справочник. ${title}`;
 		return h1;
@@ -58,7 +63,7 @@ const data = [
 
 	const createMain = () => {
 		const main = document.createElement('main');
-	
+
 		const mainContainer = createContainer();
 		main.append(mainContainer);
 
@@ -67,13 +72,13 @@ const data = [
 	};
 
 	const createButtonsGroup = params => {
-		
+
 		const btnWrapper = document.createElement('div');
 
 		btnWrapper.classList.add('btn-wrapper');
 
 		const btns = params.map(({ className, type, text }) => {
-		
+
 			const button = document.createElement('button');
 			button.type = type;
 			button.textContent = text;
@@ -91,7 +96,7 @@ const data = [
 
 	const createTable = () => {
 		const table = document.createElement('table');
-	
+
 		table.classList.add('table', 'table-striped');
 		const thead = document.createElement('thead');
 		thead.insertAdjacentHTML('beforeend', `
@@ -112,7 +117,7 @@ const data = [
 
 
 	const createForm = () => {
-	
+
 		const overlay = document.createElement('div');
 
 		overlay.classList.add('form-overlay');
@@ -151,7 +156,7 @@ const data = [
 				text: 'Отмена',
 			},
 		]);
-	
+
 		form.append(...buttonGroup.btns);
 
 		overlay.append(form);
@@ -167,7 +172,7 @@ const data = [
 	const createFooter = title => {
 		const footer = document.createElement('footer');
 		footer.classList.add('footer');
-		
+
 		footer.textContent = `Все права защищены ©${title}`;
 
 		return footer;
@@ -177,7 +182,7 @@ const data = [
 	const renderPhoneBook = (app, title) => {
 
 		// console.log('app: ', app);
-	
+
 		const header = createHeader();
 		const logo = createLogo(title);
 		const main = createMain();
@@ -197,14 +202,14 @@ const data = [
 
 		const table = createTable(); // и передаем в main.mainContainer
 
-		const form = createForm();
+		const {form, overlay} = createForm();
 
 		const footer = createFooter(title);
 
 
 		header.headerContainer.append(logo);
 
-		main.mainContainer.append(buttonGroup.btnWrapper, table, form.overlay);
+		main.mainContainer.append(buttonGroup.btnWrapper, table, overlay);
 
 		// добавим хедер на страницу в наш app
 		app.append(header, main, footer);
@@ -214,8 +219,8 @@ const data = [
 			logo,
 			btnAdd: buttonGroup.btns[0],
 			btnDel: buttonGroup.btns[1],
-			formOverlay: form.overlay,
-			form: form.form,
+			formOverlay: overlay,
+			form,
 		};
 	};
 
@@ -241,7 +246,7 @@ const data = [
 		tdSurname.textContent = surname;
 
 		const tdPhone = document.createElement('td');
-	
+
 		const phoneLink = document.createElement('a');
 		phoneLink.href = `tel:${phone}`;
 		phoneLink.textContent = phone;
@@ -250,21 +255,14 @@ const data = [
 
 		tdPhone.append(phoneLink);
 
-		// 1 вариант кнопка
+		//  кнопка
 		const trbut = document.createElement('button');
 		trbut.style.padding = "0.75rem";
 		trbut.textContent = 'редактировать';
 		trbut.classList.add('btn-success');
 
-		// 2 вариант ячейка
-		// const trbut = document.createElement('td');
-		// trbut.style.width = "10%";
-		// trbut.textContent = 'редактировать';
-		// trbut.classList.add('btn-success');	
-		
-
 		tr.append(tdDel, tdName, tdSurname, tdPhone, trbut);
-		
+
 		return tr;
 	};
 
@@ -292,49 +290,90 @@ const data = [
 		});
 	};
 
+	const modalControl = (btnAdd, formOverlay) => {
 
-	const init = (selectorApp, title) => {
-		const app = document.querySelector(selectorApp);
-		const phoneBook = renderPhoneBook(app, title);
-	
-	
-		const { list, logo, btnAdd, formOverlay, form, btnDel} = phoneBook;
-
-		// функционал 
-		const allRow = renderContacts(list, data);
-		hoverRow(allRow, logo);
-		
-
-		const objEvent = {
-			handleEvent() {
-				console.log('adding');
-				formOverlay.classList.add('is-visible');
-			},
+		const openModal = () => {
+			formOverlay.classList.add('is-visible');
 		};
 
-		btnAdd.addEventListener('click', objEvent);
+		const closeModal = () => {
+			formOverlay.classList.remove('is-visible');
+		};
 
+		btnAdd.addEventListener('click', openModal);
+
+		formOverlay.addEventListener('click', e => {
+			const target = e.target;
+			if (target === formOverlay || target.classList.contains('close')) {
+				closeModal();
+			}
+		});
+
+		return {
+			closeModal,
+		};
+	};
+
+	const deleteControl = (btnDel, list) => {
+		// теперь при клике на btnDel  мы можем показать кнопочки(крестики) для удаления
 		btnDel.addEventListener('click', () => {
 			// получим все кнопки с классом delete
 			document.querySelectorAll('.delete').forEach(del => {
 				del.classList.toggle('is-visible');
 			})
 		});
-
+		// и теперь с помощью делеигирования будем кликать по листу list -это вся наша таблица (область  tbody)
 		list.addEventListener('click', e => {
+			// console.log(e.target);
 			if (e.target.closest('.del-icon')) {
 				// находим родителя тоже через closest - будем подниматься до элемента contact и его удалять
 				e.target.closest('.contact').remove();
 			}
-
 		});
 
-		formOverlay.addEventListener('click', e => {
-			const target = e.target;
-			if (target === formOverlay || target.classList.contains('close')) {
-				formOverlay.classList.remove('is-visible');
-			}
+	};
+
+	const addContactPage = (contact, list) => {
+		// list.append(contact);   // добавили [object Object]
+		// нам необходимо добавлять не объкт а строку - а для этого мы будем ф-ю createRow
+		list.append(createRow(contact));
+	};
+
+	// ф-я обрабатывает форму - навешивает события
+	const formControl = (form, list, closeModal) => {
+		form.addEventListener('submit', e => {
+			e.preventDefault();
+			// отправка данных - по схему из предыдущего видео - создаем formDate И ПЕРЕДЕМ ТУДУ ФОРМУ ЧЕРЕЗ e.target
+			const formData = new FormData(e.target);
+			// создаем объект и передаем туда formData
+			const newContact = Object.fromEntries(formData);
+			// console.log('newContact', newContact);  // {"name": "Bob","surname": "freeman","phone": "0005"}
+			// добавить нового пользователя на страницу напишем функцию и переддим туда новый контактпомимо newContact нам нужно саму таблицу куда мы будем вставлят данные
+			addContactPage(newContact, list);
+
+			// вызов сверху функции и передаем контакт что только создали
+			addContactData(newContact);
+
+			// очитска после отправки
+			form.reset();
+			// закрывать перед добавлением нового пользователя 
+			closeModal();
 		});
+	};
+
+	const init = (selectorApp, title) => {
+		const app = document.querySelector(selectorApp);
+		const { list, logo, btnAdd, formOverlay, form, btnDel } = renderPhoneBook(app, title);
+
+
+		// функционал 
+		const allRow = renderContacts(list, data);
+		const { closeModal } = modalControl(btnAdd, formOverlay);
+
+		hoverRow(allRow, logo);
+		deleteControl(btnDel, list);
+		formControl(form, list, closeModal);
+
 
 		// При клике на поле имя или фамилия производить сортировку по алфавиту в таблице
 		const sortarrn = (data) => {
