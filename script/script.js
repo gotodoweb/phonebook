@@ -30,7 +30,7 @@ const data = [
 		localStorage.clear();
 	};
 
-	clearStorage();
+	// clearStorage();
 
 	const getStorage = key => JSON.parse(localStorage.getItem(key)) || [];
 
