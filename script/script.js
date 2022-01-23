@@ -26,11 +26,64 @@ const data = [
 
 
 {
-	// ф-я данных нового контакта
-	const addContactData = contact => {
-		data.push(contact);
-		// console.log('data', data);
+	const clearStorage = () => {
+		localStorage.clear();
 	};
+
+	clearStorage();
+
+	const getStorage = key => JSON.parse(localStorage.getItem(key)) || [];
+
+
+	const setStorage = (key, obj) => {
+		let newdata = getStorage(key);
+
+		if (newdata.length === 0) {	
+			newdata = data;
+			localStorage.setItem('data', JSON.stringify(newdata));
+		};
+
+		newdata.push(obj);
+		localStorage.setItem('data', JSON.stringify(newdata));
+
+		// return newdata;
+	};
+
+
+	const removeStorage = (phone) => {
+		let newdata = getStorage('data');
+		console.log('newdata', newdata);
+
+		let filterObj = newdata.filter(function (e) {
+			// console.log(e.a == 1);
+			if (e.phone == phone) {
+				let c = e.phone;
+				console.log(c);
+				return c;
+			}
+			// return e.phone === phone;
+		});
+		console.log('filterObj', filterObj);
+		let gottenobj = filterObj[0];
+		// console.log('gottenobj', gottenobj);
+		// console.log(gottenobj.name);
+		// console.log(gottenobj.phone);
+		console.log('newdata[2]', newdata[2]);
+
+		for (let i = 0; i <= filterObj.length; i++) {
+			// console.log('ele', filterObj[i]);
+			// console.log('newdata.indexOf(gottenobj)', newdata.indexOf(gottenobj));
+
+			let index = newdata.indexOf(filterObj[i]);
+			// console.log('index', index);
+			if (index > -1) {
+				newdata.splice(index, 1);
+			}		
+		};
+		localStorage.setItem('data', JSON.stringify(newdata));
+	};
+	// removeStorage(8909);
+
 
 	const createContainer = () => {
 		const container = document.createElement('div');
@@ -324,10 +377,12 @@ const data = [
 		});
 		// и теперь с помощью делеигирования будем кликать по листу list -это вся наша таблица (область  tbody)
 		list.addEventListener('click', e => {
-			// console.log(e.target);
+			
 			if (e.target.closest('.del-icon')) {
 				// находим родителя тоже через closest - будем подниматься до элемента contact и его удалять
 				e.target.closest('.contact').remove();
+				// console.log('phone', e.target.closest('.contact').children[3].innerText);
+				removeStorage(e.target.closest('.contact').children[3].innerText);
 			}
 		});
 
@@ -352,8 +407,8 @@ const data = [
 			addContactPage(newContact, list);
 
 			// вызов сверху функции и передаем контакт что только создали
-			addContactData(newContact);
-
+			// addContactData(newContact);
+			setStorage('data', newContact);
 			// очитска после отправки
 			form.reset();
 			// закрывать перед добавлением нового пользователя 
@@ -367,7 +422,13 @@ const data = [
 
 
 		// функционал 
-		const allRow = renderContacts(list, data);
+		let ndata = getStorage('data');
+		// console.log('ndata', ndata);
+		if (ndata.length === 0) {
+			ndata = data;
+		};
+
+		const allRow = renderContacts(list, ndata);
 		const { closeModal } = modalControl(btnAdd, formOverlay);
 
 		hoverRow(allRow, logo);
@@ -400,7 +461,8 @@ const data = [
 				document.querySelectorAll('.name').forEach(del => {
 					del.closest('.contact').remove();
 				})
-				const allRow = renderContacts(list, sortarrn(data));
+				const allRow = renderContacts(list, sortarrn(ndata));
+				localStorage.setItem('data', JSON.stringify(ndata));
 			}
 		});
 
@@ -413,7 +475,8 @@ const data = [
 					del.closest('.contact').remove();
 				})
 
-				const allRow = renderContacts(list, sortarrs(data));
+				const allRow = renderContacts(list, sortarrs(ndata));
+				localStorage.setItem('data', JSON.stringify(ndata));
 
 			}
 		});
